@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        nodejs 'NodeJS'
-    }
-
     stages {
         stage('Checkout Code') {
             steps {
@@ -12,21 +8,15 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Build Docker Image') {
             steps {
-                bat 'npm install'
+                bat 'docker build -t playwright-jenkins-demo .'
             }
         }
 
-        stage('Install Playwright Browsers') {
+        stage('Run Playwright Tests in Docker') {
             steps {
-                bat 'npx playwright install chromium'
-            }
-        }
-
-        stage('Run Playwright Tests') {
-            steps {
-                bat 'npx playwright test'
+                bat 'docker run --rm -e CI=true -v "%cd%\\playwright-report:/app/playwright-report" playwright-jenkins-demo'
             }
         }
     }
@@ -41,6 +31,8 @@ pipeline {
                 alwaysLinkToLastBuild: true,
                 allowMissing: true
             ])
+
+            archiveArtifacts artifacts: 'playwright-report/**/*', fingerprint: true
         }
     }
 }
