@@ -10,19 +10,13 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    dockerImage = docker.build("playwright-jenkins-demo")
-                }
+                bat 'docker build -t playwright-jenkins-demo .'
             }
         }
 
         stage('Run Playwright Tests in Docker') {
             steps {
-                script {
-                    dockerImage.inside("-e CI=true -v \"${env.WORKSPACE}\\playwright-report:/app/playwright-report\"") {
-                        bat 'npx playwright test'
-                    }
-                }
+                bat 'docker run --rm -e CI=true -v "%cd%\\playwright-report:/app/playwright-report" playwright-jenkins-demo'
             }
         }
     }
